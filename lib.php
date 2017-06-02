@@ -199,6 +199,23 @@ class repository_stockphotos extends repository {
     }
 
     /**
+     * Return file URL, for most plugins, the parameter is the original
+     * url, but some plugins use a file id, so we need this function to
+     * convert file id to original url.
+     *
+     * @param string $url the url of file
+     * @return string
+     */
+    public function get_link($photoid) {
+        global $SITE;
+
+        $info = $this->get_photo($photoid);
+        $utm = "?utm_source={$SITE->fullname}&utm_medium=referral&utm_campaign=api-credit";
+
+        return $info->urls['full'].$utm;
+    }
+
+    /**
      *
      * @param string $photoid
      * @param string $file
@@ -206,8 +223,11 @@ class repository_stockphotos extends repository {
      */
     public function get_file($photoid, $file = '') {
         $info = $this->get_photo($photoid);
+        $path = $this->prepare_file($file);
 
-        return array('path'=>$info->urls['full'], 'author'=>$info->user['name'], 'license'=>'cc');
+        file_put_contents($path, fopen($info->urls['full'], 'r'));
+
+        return array('path'=>$path, 'author'=>$info->user['name'], 'license'=>'cc');
     }
 
     private function get_photo($photoid) {
@@ -231,7 +251,7 @@ class repository_stockphotos extends repository {
         $utm = "?utm_source={$SITE->fullname}&utm_medium=referral&utm_campaign=api-credit";
         return array(
             'title'=>$title.$format,
-            'source'=>$photo->urls['full'].$utm,
+            'source'=>$photo->id,
             'id'=>$photo->id,
             'thumbnail'=>$photo->urls['thumb'],
             'thumbnail_width'=>$width,
